@@ -2,13 +2,6 @@ name: HOP Pages
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "site/**"
-      - "assets/**"
-      - ".github/workflows/pages.yml"
 
 permissions:
   contents: read
@@ -42,6 +35,8 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
