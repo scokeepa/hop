@@ -1,6 +1,6 @@
 # HOP
 
-**HOP is Open HWP.**
+**HOP is Open HWP**
 
 HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 macOS, Windows, Linux용 데스크탑 앱입니다.
 
@@ -29,7 +29,7 @@ HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 macOS, Window
 * [Windows x64 (.msi)](https://github.com/golbin/hop/releases/latest/download/HOP-windows-x64.msi)
 * [Linux x64 (AppImage)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage)
 
-macOS 빌드는 signed/notarized `.dmg`입니다. Windows 빌드는 아직 서명되지 않아 실행 시 보안 경고가 뜰 수 있습니다. 전체 릴리즈와 체크섬은 [GitHub Releases](https://github.com/golbin/hop/releases)에서 확인할 수 있습니다.
+macOS 빌드는 signed/notarized `.dmg`입니다. Windows 빌드는 아직 서명되지 않아 Edge나 Windows SmartScreen에서 "일반적으로 다운로드되지 않습니다" 또는 실행 경고가 뜰 수 있습니다. 다운로드 항목의 `...` 메뉴에서 `유지`를 선택한 뒤 다운로드할 수 있습니다. 전체 릴리즈는 [GitHub Releases](https://github.com/golbin/hop/releases)에서 확인할 수 있습니다.
 
 ## 개발하기
 

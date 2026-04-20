@@ -136,7 +136,27 @@ macOS release build는 다음 조건을 만족하지 않으면 실패한다.
 
 ## Windows 사이닝
 
-서명되지 않은 Windows 빌드도 실행은 되지만, 공개 배포 파일은 SmartScreen 경고가 뜰 수 있다. 공개 릴리즈에는 Windows 코드 사이닝 인증서를 붙이는 것이 좋다.
+### Problem 1-Pager
+
+* Background: 홈페이지는 GitHub Release의 `HOP-windows-x64.msi`를 직접 다운로드 링크로 제공한다.
+* Problem: 서명되지 않은 새 `.msi`는 Edge/Windows SmartScreen에서 "일반적으로 다운로드되지 않습니다"로 차단되거나 실행 전 경고가 뜰 수 있다.
+* Goal: 공개 Windows 설치 파일의 다운로드 차단과 실행 경고를 줄인다.
+* Non-goals: 사용자 브라우저 보안 설정을 우회하거나, 검증되지 않은 설치 파일을 안전하다고 표시하지 않는다.
+* Constraints: 릴리즈 asset 이름은 README와 홈페이지 링크 때문에 안정적으로 유지해야 하며, 서명 secret은 GitHub repository secret 또는 environment secret에만 둔다.
+* Implementation outline: 단기적으로 홈페이지와 README에는 경고 원인과 `...` 메뉴의 유지 동작을 안내한다. 운영자와 고급 사용자를 위해 GitHub Releases에는 체크섬 확인 경로를 유지한다. 정식 공개 배포 전에는 Windows Authenticode 코드 사이닝을 추가하고, 가능하면 평판 확보에 유리한 인증서 또는 Trusted Signing 경로를 사용한다.
+* Verification plan: Windows에서 Edge 다운로드, 설치 파일 서명 상태, `SHA256SUMS.txt` 체크섬, GitHub Release asset 이름을 확인한다.
+* Rollback or recovery notes: 서명 설정이 실패하면 릴리즈를 draft 상태로 유지하고 unsigned Windows asset은 공개 링크에서 내리거나 릴리즈 노트에 명확히 표시한다.
+
+서명되지 않은 Windows 빌드도 실행은 되지만, 공개 배포 파일은 Edge 다운로드 단계와 Windows 실행 단계에서 SmartScreen 경고가 뜰 수 있다. 공개 릴리즈에는 Windows 코드 사이닝 인증서를 붙이는 것이 좋다. 다운로드 단계의 "일반적으로 다운로드되지 않습니다" 경고는 파일이 반드시 악성이라는 뜻이 아니라, 서명/평판이 부족한 새 설치 파일에서 흔히 발생하는 평판 기반 경고다.
+
+사용자에게 안내할 수 있는 임시 절차는 다음과 같다. 공개 페이지에서는 1-2단계 중심으로 안내하고, 체크섬 비교는 릴리즈 문서나 고급 사용자 안내에만 둔다.
+
+1. Edge 다운로드 목록에서 차단된 `HOP-windows-x64.msi`의 `...` 메뉴를 연다.
+2. `유지`를 선택한다.
+3. 추가 확인 화면이 나오면 게시자와 파일명을 확인한 뒤 유지한다.
+4. GitHub Releases의 `SHA256SUMS.txt`와 내려받은 파일의 체크섬을 비교한다.
+
+이 절차는 임시 우회일 뿐이며, 공개 배포에서 경고를 줄이는 실질적인 방법은 Authenticode 서명이다.
 
 실무 선택지는 다음 정도다.
 

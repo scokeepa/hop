@@ -11,6 +11,7 @@ type DesktopRuntimeBridge = Partial<
     | 'createNewDocumentAsync'
     | 'confirmWindowClose'
     | 'destroyCurrentWindow'
+    | 'hasUnsavedChanges'
   >
 >;
 
@@ -19,6 +20,10 @@ interface DesktopEventsOptions {
   dispatcher: CommandDispatcher;
   eventBus: EventBus;
   setMessage(message: string): void;
+}
+
+interface CloseRequestEvent {
+  preventDefault(): void;
 }
 
 export async function setupDesktopEvents({
@@ -72,11 +77,7 @@ export async function setupDesktopEvents({
   });
 
   await currentWindow.onCloseRequested(async (event) => {
-    if (!desktop.confirmWindowClose || !desktop.destroyCurrentWindow) return;
-    event.preventDefault();
-    if (await desktop.confirmWindowClose()) {
-      await desktop.destroyCurrentWindow();
-    }
+    await handleDesktopCloseRequest(event, desktop, setMessage);
   });
 
   const pending = await desktop.takePendingOpenPaths?.();
@@ -92,6 +93,27 @@ export async function createDesktopDocument(bridge: unknown): Promise<DesktopLoa
   const desktop = bridge as DesktopRuntimeBridge;
   if (!desktop.createNewDocumentAsync) return null;
   return desktop.createNewDocumentAsync();
+}
+
+async function handleDesktopCloseRequest(
+  event: CloseRequestEvent,
+  desktop: DesktopRuntimeBridge,
+  setMessage: (message: string) => void,
+): Promise<void> {
+  if (!desktop.destroyCurrentWindow) return;
+  event.preventDefault();
+
+  try {
+    const canClose = desktop.confirmWindowClose ? await desktop.confirmWindowClose() : true;
+    if (canClose) await desktop.destroyCurrentWindow();
+  } catch (error) {
+    console.error('[desktop-events] close request failed:', error);
+    if (!desktop.hasUnsavedChanges?.()) {
+      await desktop.destroyCurrentWindow();
+    } else {
+      setMessage(`창 닫기 실패: ${error}`);
+    }
+  }
 }
 
 function hasSupportedDocumentPath(paths: string[]): boolean {

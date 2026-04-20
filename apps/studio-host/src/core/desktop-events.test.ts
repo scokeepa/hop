@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDesktopDocument, setupDesktopEvents } from './desktop-events';
 
 const tauriListen = vi.hoisted(() => vi.fn());
@@ -24,6 +24,10 @@ describe('desktop events', () => {
     vi.clearAllMocks();
     delete (globalThis as { window?: unknown }).window;
     delete (globalThis as { document?: unknown }).document;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('does nothing outside the Tauri runtime', async () => {
@@ -144,6 +148,64 @@ describe('desktop events', () => {
     expect(preventDefault).toHaveBeenCalled();
     expect(bridge.confirmWindowClose).toHaveBeenCalled();
     expect(bridge.destroyCurrentWindow).toHaveBeenCalled();
+  });
+
+  it('falls back to native close when clean close confirmation fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { getCloseHandler } = installTauriWindowMocks();
+    (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
+    installDocumentStub();
+
+    const setMessage = vi.fn();
+    const bridge = {
+      takePendingOpenPaths: vi.fn().mockResolvedValue([]),
+      confirmWindowClose: vi.fn().mockRejectedValue(new Error('bridge stalled')),
+      hasUnsavedChanges: vi.fn(() => false),
+      destroyCurrentWindow: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await setupDesktopEvents({
+      bridge,
+      dispatcher: { dispatch: vi.fn() } as never,
+      eventBus: { emit: vi.fn() } as never,
+      setMessage,
+    });
+
+    const preventDefault = vi.fn();
+    await getCloseHandler()?.({ preventDefault });
+
+    expect(preventDefault).toHaveBeenCalled();
+    expect(bridge.destroyCurrentWindow).toHaveBeenCalled();
+    expect(setMessage).not.toHaveBeenCalled();
+  });
+
+  it('keeps dirty windows open when close confirmation fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { getCloseHandler } = installTauriWindowMocks();
+    (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
+    installDocumentStub();
+
+    const setMessage = vi.fn();
+    const bridge = {
+      takePendingOpenPaths: vi.fn().mockResolvedValue([]),
+      confirmWindowClose: vi.fn().mockRejectedValue(new Error('dialog failed')),
+      hasUnsavedChanges: vi.fn(() => true),
+      destroyCurrentWindow: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await setupDesktopEvents({
+      bridge,
+      dispatcher: { dispatch: vi.fn() } as never,
+      eventBus: { emit: vi.fn() } as never,
+      setMessage,
+    });
+
+    const preventDefault = vi.fn();
+    await getCloseHandler()?.({ preventDefault });
+
+    expect(preventDefault).toHaveBeenCalled();
+    expect(bridge.destroyCurrentWindow).not.toHaveBeenCalled();
+    expect(setMessage).toHaveBeenCalledWith('창 닫기 실패: Error: dialog failed');
   });
 
   it('delegates createDesktopDocument only when the bridge supports it', async () => {

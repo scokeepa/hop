@@ -1,4 +1,5 @@
 mod commands;
+#[cfg(target_os = "macos")]
 mod menu;
 mod pdf_export;
 mod state;
@@ -17,6 +18,7 @@ use state::AppState;
 
 pub fn run() {
     let app = tauri::Builder::default()
+        .enable_macos_default_menu(false)
         .manage(AppState::default())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
@@ -29,8 +31,12 @@ pub fn run() {
             let _ = app.emit("hop-second-instance", payload);
         }))
         .setup(|app| {
+            #[cfg(target_os = "macos")]
             menu::install(app)?;
+            #[cfg(not(target_os = "macos"))]
+            app.set_menu(tauri::menu::Menu::new(app)?)?;
             if let Some(window) = app.get_webview_window("main") {
+                windows::install_editor_window_size_guard(&window);
                 windows::attach_document_drop_handler(app.handle(), &window);
             }
             Ok(())

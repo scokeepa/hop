@@ -6,7 +6,7 @@
 
 **제품명: HOP**
 
-**HOP is Open HWP.** HOP는 HWP/HWPX 문서를 열고, 편집하고, 저장하고, PDF로 내보내는 오픈 데스크톱 문서 편집기다. 1차 제품은 `rhwp`의 Rust 문서 코어와 `rhwp-studio` UI 자산을 기반으로 하되, 웹 데모가 아니라 Windows, macOS, Linux에서 실제 문서를 다룰 수 있는 독립 실행형 앱을 목표로 한다.
+**HOP is Open HWP** HOP는 HWP/HWPX 문서를 열고, 편집하고, 저장하고, PDF로 내보내는 오픈 데스크톱 문서 편집기다. 1차 제품은 `rhwp`의 Rust 문서 코어와 `rhwp-studio` UI 자산을 기반으로 하되, 웹 데모가 아니라 Windows, macOS, Linux에서 실제 문서를 다룰 수 있는 독립 실행형 앱을 목표로 한다.
 
 ### 한 줄 설명
 
