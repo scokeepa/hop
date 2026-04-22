@@ -11,6 +11,7 @@ docs/
     initial/
       SPEC.md                초기 제품 및 public beta 스펙
       IMPLEMENTATION_STATUS.md 초기 스펙 기준 구현 상태
+    windows-file-association-launch.md Windows 파일 연결 런치 스펙
   architecture/
     UPSTREAM.md              upstream rhwp 경계와 업데이트 방식
   operations/
