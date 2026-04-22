@@ -1,5 +1,7 @@
 mod app_quit;
 mod commands;
+#[cfg(target_os = "linux")]
+mod linux_runtime;
 #[cfg(target_os = "macos")]
 mod menu;
 mod pdf_export;
@@ -23,6 +25,9 @@ use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
 
 pub fn run() {
+    #[cfg(target_os = "linux")]
+    linux_runtime::apply_linux_appimage_runtime_fixes();
+
     let app = tauri::Builder::default()
         .enable_macos_default_menu(false)
         .manage(AppState::default())

@@ -16,6 +16,7 @@ const overrideIds = [
   'ui/print-dialog',
   'ui/toolbar',
   'ui/update-notice',
+  'view/canvas-view',
   'styles/about-dialog.css',
   'styles/custom-select.css',
   'styles/font-set-dialog.css',
