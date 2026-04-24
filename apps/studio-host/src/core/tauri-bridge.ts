@@ -495,6 +495,11 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     } finally {
       await file.close();
     }
+
+    const written = await stat(path);
+    if (this.finiteFileSize(written.size) !== bytes.byteLength) {
+      throw new Error(`staging 파일 크기 검증 실패: expected ${bytes.byteLength}, got ${written.size ?? 'unknown'}`);
+    }
   }
 
   private finiteFileSize(size: number | null | undefined): number | undefined {

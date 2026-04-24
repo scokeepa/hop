@@ -314,6 +314,12 @@ describe('TauriBridge', () => {
     });
     expect(handle.write).toHaveBeenCalledWith(new Uint8Array([1, 2, 3]));
     expect(handle.close).toHaveBeenCalled();
+    const commitCallIndex = invokeMock.mock.calls.findIndex(([command]) => command === 'commit_staged_hwp_save');
+    expect(commitCallIndex).toBeGreaterThan(-1);
+    expect(handle.close.mock.invocationCallOrder[0]).toBeLessThan(
+      invokeMock.mock.invocationCallOrder[commitCallIndex]!,
+    );
+    expect(statMock).toHaveBeenCalledWith('/tmp/report.hwp.hop-save-1234abcd.tmp');
     expect(removeMock).toHaveBeenCalledWith('/tmp/report.hwp.hop-save-1234abcd.tmp');
     expect(result?.sourcePath).toBe('/tmp/report.hwp');
     expect(result?.revision).toBe(6);
@@ -328,6 +334,7 @@ describe('TauriBridge', () => {
     bytes[0] = 1;
     bytes[bytes.length - 1] = 9;
     fsOpenMock.mockResolvedValue(handle);
+    statMock.mockResolvedValue({ size: bytes.length, isFile: true });
     getWasmMock(bridge, 'exportHwpMock').mockReturnValue(bytes);
     applyOpenResult(bridge, {
       docId: 'doc-1',
@@ -363,6 +370,35 @@ describe('TauriBridge', () => {
     expect(writes[0]?.[0][0]).toBe(1);
     expect(writes[1]?.[0].byteLength).toBe(5);
     expect(writes[1]?.[0][4]).toBe(9);
+  });
+
+  it('rejects staged saves before native commit when the written file size is incomplete', async () => {
+    const bridge = new TauriBridge();
+    const handle = writeHandle();
+    fsOpenMock.mockResolvedValue(handle);
+    statMock.mockResolvedValue({ size: 2, isFile: true });
+    applyOpenResult(bridge, {
+      docId: 'doc-1',
+      fileName: 'source.hwp',
+      sourcePath: '/tmp/source.hwp',
+      format: 'hwp',
+      pageCount: 1,
+      revision: 5,
+      dirty: true,
+      warnings: [],
+    });
+    invokeMock.mockImplementation(async (command: string) => {
+      if (command === 'check_external_modification') return { changed: false };
+      if (command === 'prepare_staged_hwp_save') return '/tmp/source.hwp.hop-save-short.tmp';
+      if (command === 'commit_staged_hwp_save') throw new Error('commit should not run');
+      throw new Error(`unexpected command ${command}`);
+    });
+
+    await expect(bridge.saveDocumentFromCommand()).rejects.toThrow('staging 파일 크기 검증 실패');
+
+    expect(handle.close).toHaveBeenCalled();
+    expect(invokeMock.mock.calls.some(([command]) => command === 'commit_staged_hwp_save')).toBe(false);
+    expect(removeMock).toHaveBeenCalledWith('/tmp/source.hwp.hop-save-short.tmp');
   });
 
   it('exports PDF through a staged hwp file instead of byte IPC', async () => {
