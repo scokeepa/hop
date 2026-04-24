@@ -11,6 +11,7 @@ const hopShortcuts: [ShortcutDef, string][] = [
   [{ key: 'o', ctrl: true }, 'file:open'],
   [{ key: 's', ctrl: true, shift: true }, 'file:save-as'],
   [{ key: 'e', ctrl: true }, 'file:export-pdf'],
+  [{ key: 't', ctrl: true, alt: true }, 'table:cell-selection-enter'],
 ];
 
 const hopShortcutKeys = new Set(hopShortcuts.map(([shortcut]) => shortcutKey(shortcut)));

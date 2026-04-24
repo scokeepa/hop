@@ -2,6 +2,8 @@ import { resolve } from 'node:path';
 
 const overrideIds = [
   'core/font-loader',
+  'core/font-application',
+  'core/local-fonts',
   'core/bridge-factory',
   'core/document-files',
   'core/desktop-chrome',
@@ -9,6 +11,8 @@ const overrideIds = [
   'core/platform',
   'core/tauri-bridge',
   'command/shortcut-map',
+  'command/commands/format',
+  'command/commands/table',
   'command/commands/file',
   'engine/cell-selection-renderer',
   'engine/input-handler',
@@ -18,6 +22,7 @@ const overrideIds = [
   'ui/custom-select',
   'ui/dialog',
   'ui/print-dialog',
+  'ui/style-edit-dialog',
   'ui/toolbar',
   'ui/update-notice',
   'view/canvas-view',

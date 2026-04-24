@@ -46,6 +46,13 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let find = MenuItemBuilder::with_id("edit:find", "Find")
         .accelerator("CmdOrCtrl+F")
         .build(app)?;
+    let table_select_cells = MenuItemBuilder::with_id("table:cell-selection-enter", "Select Cells")
+        .accelerator("CmdOrCtrl+Alt+T")
+        .build(app)?;
+    let table_merge_cells =
+        MenuItemBuilder::with_id("table:cell-merge", "Merge Cells").build(app)?;
+    let table_split_cells =
+        MenuItemBuilder::with_id("table:cell-split", "Split Cells").build(app)?;
 
     let zoom_in = MenuItemBuilder::with_id("view:zoom-in", "Zoom In")
         .accelerator("CmdOrCtrl+=")
@@ -89,6 +96,12 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
         .separator()
         .item(&find)
         .build()?;
+    let table_menu = SubmenuBuilder::new(app, "Table")
+        .item(&table_select_cells)
+        .separator()
+        .item(&table_merge_cells)
+        .item(&table_split_cells)
+        .build()?;
     let view_menu = SubmenuBuilder::new(app, "View")
         .item(&zoom_in)
         .item(&zoom_out)
@@ -104,7 +117,14 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
 
     let menu = Menu::with_items(
         app,
-        &[&app_menu, &file_menu, &edit_menu, &view_menu, &window_menu],
+        &[
+            &app_menu,
+            &file_menu,
+            &edit_menu,
+            &table_menu,
+            &view_menu,
+            &window_menu,
+        ],
     )?;
     app.set_menu(menu)?;
     app.on_menu_event(|app, event| {

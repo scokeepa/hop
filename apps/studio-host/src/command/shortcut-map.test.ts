@@ -14,6 +14,8 @@ describe('shortcut-map', () => {
     expect(matchShortcut(keyEvent({ key: 's', metaKey: true }), defaultShortcuts)).toBe('file:save');
     expect(matchShortcut(keyEvent({ key: 'n', metaKey: true, shiftKey: true }), defaultShortcuts))
       .toBe('file:new-window');
+    expect(matchShortcut(keyEvent({ key: 't', metaKey: true, altKey: true }), defaultShortcuts))
+      .toBe('table:cell-selection-enter');
   });
 
   it('does not treat Meta as Ctrl on Windows', () => {

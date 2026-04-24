@@ -18,6 +18,8 @@ import type { CellSelectionRenderer } from './cell-selection-renderer';
 import type { TableObjectRenderer } from './table-object-renderer';
 import type { TableResizeRenderer, BorderEdge } from './table-resize-renderer';
 import type { CellBbox } from '@/core/types';
+import { detectDesktopPlatform } from '@/core/platform';
+import { resolveTextInputAnchorRect } from './text-input-anchor';
 import * as _mouse from './input-handler-mouse';
 import * as _table from './input-handler-table';
 import * as _keyboard from '@upstream/engine/input-handler-keyboard';
@@ -33,6 +35,7 @@ export class InputHandler {
   private selectionRenderer: SelectionRenderer;
   private history: CommandHistory;
   private textarea: HTMLTextAreaElement;
+  private readonly keepTextInputNearCaret: boolean;
   private active = false;
   private insertMode = true;  // true=삽입, false=수정(덮어쓰기)
   /** 마지막 셀 키 (눈금자 셀 bbox 중복 조회 방지) */
@@ -220,6 +223,7 @@ export class InputHandler {
     // contentEditable <div>를 사용하고 .value 프록시를 추가한다.
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    this.keepTextInputNearCaret = !isIOS && detectDesktopPlatform() === 'linux';
 
     if (isIOS) {
       const div = document.createElement('div');
@@ -243,8 +247,29 @@ export class InputHandler {
       this.textarea = div as unknown as HTMLTextAreaElement;
     } else {
       this.textarea = document.createElement('textarea');
-      this.textarea.style.cssText =
-        'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
+      this.textarea.style.cssText = this.keepTextInputNearCaret
+        ? [
+            'position:fixed',
+            'left:0',
+            'top:0',
+            'width:2px',
+            'height:20px',
+            'opacity:0.01',
+            'color:transparent',
+            'background:transparent',
+            'caret-color:transparent',
+            'border:none',
+            'outline:none',
+            'resize:none',
+            'overflow:hidden',
+            'pointer-events:none',
+            'z-index:0',
+            'font-size:16px',
+            'line-height:20px',
+            'padding:0',
+            'margin:0',
+          ].join(';')
+        : 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
       this.textarea.setAttribute('autocomplete', 'off');
       this.textarea.setAttribute('autocorrect', 'off');
       this.textarea.setAttribute('autocapitalize', 'off');
@@ -1010,6 +1035,8 @@ export class InputHandler {
       { type: 'command', commandId: 'table:delete-row' },
       { type: 'command', commandId: 'table:delete-col' },
       { type: 'separator' },
+      { type: 'command', commandId: 'table:cell-selection-enter', label: '셀 블록 선택' },
+      { type: 'separator' },
       { type: 'command', commandId: 'table:cell-merge' },
       { type: 'command', commandId: 'table:cell-split' },
       { type: 'separator' },
@@ -1333,6 +1360,9 @@ export class InputHandler {
 
   /** textarea에 포커스를 설정한다 (iOS 호환) */
   private focusTextarea(): void {
+    if (this.keepTextInputNearCaret) {
+      this.syncTextareaToCaret(this.cursor.getRect(), this.viewportManager.getZoom());
+    }
     this.textarea.focus();
   }
 
@@ -1348,6 +1378,7 @@ export class InputHandler {
     const rect = this.cursor.getRect();
     if (rect) {
       const zoom = this.viewportManager.getZoom();
+      this.syncTextareaToCaret(rect, zoom);
 
       // IME 조합 중: 블랙박스 캐럿 표시
       if (this.isComposing && this.compositionAnchor && this.compositionLength > 0) {
@@ -1410,6 +1441,34 @@ export class InputHandler {
     if (cursorRect) {
       this.eventBus.emit('cursor-rect-updated', { x: cursorRect.x, y: cursorRect.y });
     }
+  }
+
+  private syncTextareaToCaret(rect: CursorRect | null, zoom: number): void {
+    if (!this.keepTextInputNearCaret || !rect) return;
+
+    const scrollContent = this.container.querySelector('#scroll-content') as HTMLElement | null;
+    const pageLeft = resolveVirtualScrollPageLeft(
+      this.virtualScroll,
+      rect.pageIndex,
+      scrollContent?.clientWidth ?? this.container.clientWidth,
+    );
+    const anchor = resolveTextInputAnchorRect(
+      rect,
+      pageLeft,
+      this.virtualScroll.getPageOffset(rect.pageIndex),
+      zoom,
+      this.container.getBoundingClientRect(),
+      this.container.scrollLeft,
+      this.container.scrollTop,
+    );
+
+    Object.assign(this.textarea.style, {
+      left: `${anchor.left}px`,
+      top: `${anchor.top}px`,
+      width: `${anchor.width}px`,
+      height: `${anchor.height}px`,
+      lineHeight: `${anchor.height}px`,
+    });
   }
 
   /** 캐럿 위치를 갱신하되 스크롤하지 않는다 (머리말/꼬리말 닫기 등) */
@@ -2052,6 +2111,30 @@ export class InputHandler {
     this.cursor.exitCellSelectionMode();
     this.cellSelectionRenderer?.clear();
     this.updateCaret();
+  }
+
+  /** HOP-owned 셀 선택 진입/단계 진행 경로 (F5 대체). */
+  enterOrAdvanceCellSelectionMode(): boolean {
+    if (!this.cursor.isInCell() || this.cursor.isInTextBox()) {
+      return false;
+    }
+
+    if (this.cursor.isInCellSelectionMode()) {
+      this.cursor.advanceCellSelectionPhase();
+      this.updateCellSelection();
+      this.focusTextarea();
+      return true;
+    }
+
+    if (!this.cursor.enterCellSelectionMode()) {
+      return false;
+    }
+
+    this.caret.hide();
+    this.selectionRenderer.clear();
+    this.updateCellSelection();
+    this.focusTextarea();
+    return true;
   }
 
   /** Undo 가능한가? */

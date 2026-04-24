@@ -5,6 +5,36 @@ import type { ContextMenuItem } from '@/ui/context-menu';
 import * as _connector from '@upstream/engine/input-handler-connector';
 import { resolveVirtualScrollPageLeft } from '../view/page-left';
 
+export function tryHandleCellSelectionClick(this: any, e: MouseEvent): boolean {
+  if (!this.cursor.isInCellSelectionMode() || e.button === 2) {
+    return false;
+  }
+
+  const cellRC = this.hitTestCellRowCol(e);
+  if (!cellRC) {
+    return false;
+  }
+
+  e.preventDefault();
+
+  if (e.shiftKey) {
+    this.cursor.shiftSelectCell(cellRC.row, cellRC.col);
+  } else if (e.ctrlKey || e.metaKey) {
+    this.cursor.ctrlToggleCell(cellRC.row, cellRC.col);
+  } else {
+    if (this.cursor.getCellSelectionPhase() === 1) {
+      this.cursor.advanceCellSelectionPhase();
+    }
+    if (this.cursor.getCellSelectionPhase() < 3) {
+      this.cursor.shiftSelectCell(cellRC.row, cellRC.col);
+    }
+  }
+
+  this.updateCellSelection();
+  this.textarea.focus();
+  return true;
+}
+
 export function onClick(this: any, e: MouseEvent): void {
   // 연결선 드로잉 모드: 연결점 클릭으로 시작/끝
   if (this.connectorDrawingMode && e.button === 0) {
@@ -397,20 +427,8 @@ export function onClick(this: any, e: MouseEvent): void {
   if (this.cursor.isInCellSelectionMode()) {
     // 우클릭 → 셀 선택 영역 유지 (컨텍스트 메뉴에서 처리)
     if (e.button === 2) return;
-    if (e.shiftKey || e.ctrlKey || e.metaKey) {
-      // 클릭된 셀의 row/col 가져오기
-      const cellRC = this.hitTestCellRowCol(e);
-      if (cellRC) {
-        e.preventDefault();
-        if (e.shiftKey) {
-          this.cursor.shiftSelectCell(cellRC.row, cellRC.col);
-        } else {
-          this.cursor.ctrlToggleCell(cellRC.row, cellRC.col);
-        }
-        this.updateCellSelection();
-        this.textarea.focus();
-        return;
-      }
+    if (tryHandleCellSelectionClick.call(this, e)) {
+      return;
     }
     // 경계선 클릭 → 셀 선택 유지 + 리사이즈 드래그 시작
     if (e.button === 0 && this.tableResizeRenderer) {
