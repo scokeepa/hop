@@ -46,64 +46,166 @@
                             aria-labelledby="download-title"
                         >
                             <h2 id="download-title">최신 버전 다운로드</h2>
-                            <div class="download-grid">
-                                <a
-                                    class="download-link"
-                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-macos-arm64.dmg"
-                                    data-download-asset="HOP-macos-arm64.dmg"
-                                >
-                                    <span>macOS</span>
-                                    <small>Apple Silicon .dmg</small>
-                                </a>
-                                <a
-                                    class="download-link"
-                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-macos-x64.dmg"
-                                    data-download-asset="HOP-macos-x64.dmg"
-                                >
-                                    <span>macOS</span>
-                                    <small>Intel .dmg</small>
-                                </a>
-                                <a
-                                    class="download-link"
-                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-windows-x64.msi"
-                                    data-download-asset="HOP-windows-x64.msi"
-                                >
-                                    <span>Windows</span>
-                                    <small>x64 .msi</small>
-                                </a>
-                                <a
-                                    class="download-link"
-                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage"
-                                    data-download-asset="HOP-linux-x64.AppImage"
-                                >
-                                    <span>Linux</span>
-                                    <small>x64 AppImage</small>
-                                </a>
-                            </div>
                             <p class="download-note" id="download-status">
-                                macOS는 signed/notarized 빌드입니다. Windows는
-                                아직 서명되지 않아 실행 시 보안 경고가 뜰 수
-                                있습니다.
+                                최신 릴리즈 파일로 연결됩니다.
                             </p>
-                            <p class="download-note">
-                                macOS는 Homebrew로도 설치할 수 있습니다:
-                                <code class="code-block">brew install hop</code>
-                            </p>
-                            <p class="windows-warning">
-                                Windows에서 "일반적으로 다운로드되지 않습니다"가
-                                표시되면 다운로드 항목의
-                                <strong>...</strong> 메뉴에서
-                                <strong>유지</strong>를 선택한 뒤 다운로드해
-                                주세요. 이 경고는 서명되지 않은 새 설치 파일에서
-                                주로 발생합니다.
-                            </p>
-                            <p class="download-note">
-                                Linux에서 AppImage 실행 시 fcitx5 기반 한글
-                                IME가 불안정하면 GitHub Releases의
-                                <strong>.deb</strong> 또는
-                                <strong>.rpm</strong> 패키지를 우선 사용해
-                                주세요.
-                            </p>
+                            <div class="download-platforms">
+                                <section
+                                    class="download-group"
+                                    aria-labelledby="download-macos"
+                                >
+                                    <h3 id="download-macos">macOS</h3>
+                                    <div class="download-options two-columns">
+                                        <a
+                                            class="download-link"
+                                            href="https://github.com/golbin/hop/releases/latest/download/HOP-macos-arm64.dmg"
+                                            data-download-asset="HOP-macos-arm64.dmg"
+                                        >
+                                            <span>Apple Silicon</span>
+                                            <small>.dmg</small>
+                                        </a>
+                                        <a
+                                            class="download-link"
+                                            href="https://github.com/golbin/hop/releases/latest/download/HOP-macos-x64.dmg"
+                                            data-download-asset="HOP-macos-x64.dmg"
+                                        >
+                                            <span>Intel</span>
+                                            <small>.dmg</small>
+                                        </a>
+                                    </div>
+                                    <p class="download-callout">
+                                        <svg
+                                            class="download-callout-icon"
+                                            aria-hidden="true"
+                                            viewBox="0 0 20 20"
+                                            focusable="false"
+                                        >
+                                            <circle cx="10" cy="10" r="8" />
+                                            <path d="M10 9v5" />
+                                            <circle
+                                                class="download-callout-dot"
+                                                cx="10"
+                                                cy="6"
+                                                r="0.9"
+                                            />
+                                        </svg>
+                                        <span class="download-callout-copy">
+                                            Homebrew로도 설치할 수 있습니다.
+                                            <code class="code-block"
+                                                >brew install hop</code
+                                            >
+                                        </span>
+                                    </p>
+                                </section>
+
+                                <section
+                                    class="download-group"
+                                    aria-labelledby="download-windows"
+                                >
+                                    <h3 id="download-windows">Windows</h3>
+                                    <div class="download-options two-columns">
+                                        <a
+                                            class="download-link"
+                                            href="https://github.com/golbin/hop/releases/latest/download/HOP-windows-x64.msi"
+                                            data-download-asset="HOP-windows-x64.msi"
+                                        >
+                                            <span>x64</span>
+                                            <small>.msi</small>
+                                        </a>
+                                        <a
+                                            class="download-link"
+                                            href="https://github.com/golbin/hop/releases/latest/download/HOP-windows-x64.exe"
+                                            data-download-asset="HOP-windows-x64.exe"
+                                        >
+                                            <span>x64</span>
+                                            <small>.exe setup</small>
+                                        </a>
+                                    </div>
+                                    <p class="download-callout">
+                                        <svg
+                                            class="download-callout-icon"
+                                            aria-hidden="true"
+                                            viewBox="0 0 20 20"
+                                            focusable="false"
+                                        >
+                                            <circle cx="10" cy="10" r="8" />
+                                            <path d="M10 9v5" />
+                                            <circle
+                                                class="download-callout-dot"
+                                                cx="10"
+                                                cy="6"
+                                                r="0.9"
+                                            />
+                                        </svg>
+                                        <span class="download-callout-copy">
+                                            아직 서명되지 않아 다운로드나 실행
+                                            중 보안 경고가 표시될 수 있습니다.
+                                            Edge에서 "일반적으로 다운로드되지
+                                            않습니다"가 표시되면 다운로드 항목의
+                                            <strong>...</strong> 메뉴에서
+                                            <strong>유지</strong>를 선택해
+                                            주세요.
+                                        </span>
+                                    </p>
+                                </section>
+
+                                <section
+                                    class="download-group"
+                                    aria-labelledby="download-linux"
+                                >
+                                    <h3 id="download-linux">Linux</h3>
+                                    <div class="download-options three-columns">
+                                        <a
+                                            class="download-link"
+                                            href="https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.deb"
+                                            data-download-asset="HOP-linux-x64.deb"
+                                        >
+                                            <span>x64 .deb (권장)</span>
+                                            <small>Debian/Ubuntu</small>
+                                        </a>
+                                        <a
+                                            class="download-link"
+                                            href="https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.rpm"
+                                            data-download-asset="HOP-linux-x64.rpm"
+                                        >
+                                            <span>x64 .rpm</span>
+                                            <small>Fedora/openSUSE</small>
+                                        </a>
+                                        <a
+                                            class="download-link"
+                                            href="https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage"
+                                            data-download-asset="HOP-linux-x64.AppImage"
+                                        >
+                                            <span>AppImage</span>
+                                            <small>portable</small>
+                                        </a>
+                                    </div>
+                                    <p class="download-callout">
+                                        <svg
+                                            class="download-callout-icon"
+                                            aria-hidden="true"
+                                            viewBox="0 0 20 20"
+                                            focusable="false"
+                                        >
+                                            <circle cx="10" cy="10" r="8" />
+                                            <path d="M10 9v5" />
+                                            <circle
+                                                class="download-callout-dot"
+                                                cx="10"
+                                                cy="6"
+                                                r="0.9"
+                                            />
+                                        </svg>
+                                        <span class="download-callout-copy">
+                                            한글 IME 안정성을 위해 배포판에 맞는
+                                            <strong>.deb</strong> 또는
+                                            <strong>.rpm</strong> 패키지를 먼저
+                                            사용해 주세요. AppImage는 별도 설치
+                                            없이 실행해야 할 때 적합합니다.
+                                        </span>
+                                    </p>
+                                </section>
+                            </div>
                         </section>
                         <section
                             class="project-links"

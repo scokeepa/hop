@@ -154,15 +154,47 @@ h1 {
     letter-spacing: 0;
 }
 
-.download-grid {
+.download-platforms {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 16px;
+}
+
+.download-group {
+    padding-top: 16px;
+    border-top: 1px dashed rgba(16, 124, 65, 0.22);
+}
+
+.download-group:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.download-group h3 {
+    margin: 0 0 10px;
+    color: var(--ink);
+    font-size: 0.94rem;
+    line-height: 1.35;
+    letter-spacing: 0;
+}
+
+.download-options {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+}
+
+.download-options.two-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.download-options.three-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .download-link {
     display: flex;
-    min-height: 68px;
+    min-height: 64px;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
@@ -214,18 +246,43 @@ h1 {
     margin-top: 6px;
 }
 
-.windows-warning {
+.download-callout {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    column-gap: 9px;
+    align-items: start;
     margin: 10px 0 0;
     padding: 10px 12px;
-    border: 1px solid rgba(16, 124, 65, 0.24);
+    border: 1px solid rgba(210, 148, 45, 0.28);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.74);
-    color: var(--muted);
+    background: rgba(255, 248, 222, 0.76);
+    color: #5e4d25;
     font-size: 0.82rem;
     line-height: 1.58;
 }
 
-.windows-warning strong {
+.download-callout-icon {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: #8a5d16;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+}
+
+.download-callout-dot {
+    fill: currentColor;
+    stroke: none;
+}
+
+.download-callout-copy {
+    min-width: 0;
+}
+
+.download-callout strong {
     color: var(--ink);
 }
 
@@ -354,7 +411,9 @@ h1 {
         flex-direction: column;
     }
 
-    .download-grid {
+    .download-options,
+    .download-options.two-columns,
+    .download-options.three-columns {
         grid-template-columns: 1fr;
     }
 

@@ -41,11 +41,15 @@ Linux x64는 Ubuntu 22.04 ABI baseline을 명시적으로 유지한다. workflow
 | macOS Apple Silicon | `HOP-macos-arm64.dmg` | `/releases/latest/download/HOP-macos-arm64.dmg` |
 | macOS Intel | `HOP-macos-x64.dmg` | `/releases/latest/download/HOP-macos-x64.dmg` |
 | Windows x64 | `HOP-windows-x64.msi` | `/releases/latest/download/HOP-windows-x64.msi` |
-| Linux x64 | `HOP-linux-x64.AppImage` | `/releases/latest/download/HOP-linux-x64.AppImage` |
+| Linux x64 Debian/Ubuntu 계열 | `HOP-linux-x64.deb` | `/releases/latest/download/HOP-linux-x64.deb` |
+| Linux x64 Fedora/openSUSE 계열 | `HOP-linux-x64.rpm` | `/releases/latest/download/HOP-linux-x64.rpm` |
+| Linux x64 portable | `HOP-linux-x64.AppImage` | `/releases/latest/download/HOP-linux-x64.AppImage` |
 
-현재 공개 다운로드는 macOS signed/notarized 빌드를 먼저 노출한다. Windows와 Linux는 workflow에서 선택해 빌드할 수 있고, 생성된 경우 고정 이름 asset으로 함께 업로드된다. `HOP-windows-x64.exe`, `HOP-linux-x64.deb`, `HOP-linux-x64.rpm`은 만들어진 경우 함께 올린다. `SHA256SUMS.txt`는 고정 이름으로 복사된 릴리즈 asset과 updater asset 기준으로 생성한다.
+현재 공개 다운로드는 macOS signed/notarized 빌드와 Windows MSI를 노출하고, Linux는 `.deb`를 기본 링크로 제공한다. Windows와 Linux는 workflow에서 선택해 빌드할 수 있고, 생성된 경우 고정 이름 asset으로 함께 업로드된다. `HOP-windows-x64.exe`, `HOP-linux-x64.AppImage`, `HOP-linux-x64.rpm`은 만들어진 경우 함께 올린다. `SHA256SUMS.txt`는 고정 이름으로 복사된 릴리즈 asset과 updater asset 기준으로 생성한다.
 
-Linux 공개 안내에는 AppImage를 기본 링크로 유지하되, AppImage에서 fcitx5 기반 한글 IME가 불안정할 때는 GitHub Releases의 `.deb` 또는 `.rpm` 패키지를 우선 사용하라는 문구를 함께 노출한다.
+Linux 공개 안내에는 한글 IME 안정성을 위해 `.deb` 또는 `.rpm` 패키지를 우선 사용하라는 문구를 노출한다. AppImage는 portable 실행이 필요한 사용자를 위한 보조 배포물로 유지하며, 일부 Wayland/IME 환경에서는 한영 전환이 불안정할 수 있음을 함께 안내한다.
+
+Arch 계열 배포판용 native 패키지는 아직 제공하지 않는다. `debtap` 같은 변환 도구로 `.deb`를 Arch 패키지로 바꾸는 방식은 사용자 workaround이며, 변환 과정에서 `gtk`처럼 잘못된 Arch 의존성이 생길 수 있다. 또한 변환 설치된 바이너리는 Tauri updater에서 여전히 deb bundle로 판단될 수 있으므로, 이후 앱 내 업데이트가 `.deb`와 `dpkg -i` 경로를 사용해 실패할 수 있다. 공개 안내에서는 이 변환 경로를 공식 설치 방법처럼 권장하지 않는다.
 
 자동 업데이트는 GitHub Release의 `latest.json`을 사용한다.
 
@@ -53,7 +57,7 @@ Linux 공개 안내에는 AppImage를 기본 링크로 유지하되, AppImage에
 https://github.com/golbin/hop/releases/latest/download/latest.json
 ```
 
-릴리즈 잡은 Tauri updater용 압축 bundle과 `.sig` 파일을 `HOP-updater-*` 또는 설치 파일 이름으로 함께 올리고, `latest.json` 안의 다운로드 URL은 해당 릴리즈 태그의 asset을 가리키게 만든다. manifest에는 `darwin-aarch64-app`, `windows-x86_64-msi`, `linux-x86_64-appimage`처럼 Tauri가 먼저 찾는 installer-specific key와 fallback key를 함께 넣는다. 앱은 시작 시 이 manifest를 확인한다. 업데이트가 있으면 다운로드와 설치를 수행하고, Rust 쪽에서 아직 dirty 문서 세션이 없을 때만 재시작한다.
+릴리즈 잡은 Tauri updater용 압축 bundle과 `.sig` 파일을 `HOP-updater-*` 또는 설치 파일 이름으로 함께 올리고, `latest.json` 안의 다운로드 URL은 해당 릴리즈 태그의 asset을 가리키게 만든다. manifest에는 `darwin-aarch64-app`, `windows-x86_64-msi`, `linux-x86_64-appimage`처럼 Tauri가 먼저 찾는 installer-specific key와 fallback key를 함께 넣는다. Linux installer-specific key는 각 패키지 형식을 그대로 가리켜야 하며, generic `linux-x86_64` fallback은 Linux 기본 다운로드 정책에 맞춰 `.deb`를 가리킨다. AppImage 설치본을 updater로 `.deb`에 자동 전환하는 흐름은 보장하지 않는다. 앱은 시작 시 이 manifest를 확인한다. 업데이트가 있으면 다운로드와 설치를 수행하고, Rust 쪽에서 아직 dirty 문서 세션이 없을 때만 재시작한다.
 
 수동 실행에서 `create_release`를 켜면 macOS arm64와 macOS x64를 모두 빌드해야 한다. README와 홈페이지가 두 macOS `.dmg`에 직접 링크하기 때문이다. macOS 공개 릴리즈가 unsigned로 나가는 일을 막기 위해, macOS release build는 Apple signing certificate와 notarization credential이 없으면 실패한다. 일부 플랫폼만 확인하고 싶을 때는 `create_release`를 끄고 artifact 빌드만 실행한다.
 

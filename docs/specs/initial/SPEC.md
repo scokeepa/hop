@@ -447,9 +447,9 @@ Tauri 문서상 macOS 배포는 code signing과 notarization이 요구되며, Ap
 
 ### Linux
 
-* 기본 배포: **AppImage**
-* 추가 배포: **deb**
-* 필요하면 rpm 추가
+* 기본 배포: **deb**
+* 추가 배포: **rpm**
+* portable 보조 배포: **AppImage**
 * 공식 QA 대상: Ubuntu 22.04/24.04, Debian 12, Fedora 최신
 
 Tauri 2는 Linux 개발 환경에서 `libwebkit2gtk-4.1-dev`를 요구하고, 런타임도 Linux WebKit 계열 차이를 받기 때문에 distro QA 매트릭스가 중요하다. ([Tauri][15])

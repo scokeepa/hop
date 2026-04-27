@@ -757,7 +757,7 @@ jobs:
           copy_updater_asset "linux-x64" "linux-x86_64-appimage" "HOP-linux-x64.AppImage" "*.AppImage"
           copy_updater_asset "linux-x64" "linux-x86_64-deb" "HOP-linux-x64.deb" "*.deb"
           copy_updater_asset "linux-x64" "linux-x86_64-rpm" "HOP-linux-x64.rpm" "*.rpm"
-          copy_updater_asset "linux-x64" "linux-x86_64" "HOP-linux-x64.AppImage" "*.AppImage"
+          copy_updater_asset "linux-x64" "linux-x86_64" "HOP-linux-x64.deb" "*.deb"
 
           if [[ ! -f "release-assets/HOP-macos-arm64.dmg" || ! -f "release-assets/HOP-macos-x64.dmg" ]]; then
             echo "::error::macOS releases must include both HOP-macos-arm64.dmg and HOP-macos-x64.dmg."
