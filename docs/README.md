@@ -7,6 +7,7 @@
 ```text
 docs/
   DEVELOPMENT.md             로컬 개발 환경과 주요 명령
+  KEYBOARD_SHORTCUTS.md      키보드 단축키 레퍼런스
   architecture/
     UPSTREAM.md              upstream rhwp 경계와 업데이트 방식
   operations/
