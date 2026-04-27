@@ -42,6 +42,46 @@ describe('HOP keyboard paste wrapper', () => {
       },
     ]);
   });
+
+  it('disables stale internal clipboard for new documents even when pasted HTML is already safe', () => {
+    const event = clipboardEventWithHtml(`<span style="font-family:'나눔고딕'">A</span>`);
+    const context = {
+      wasm: {
+        isNewDocument: true,
+        hasInternalClipboard: () => true,
+        clipboardHasControl: () => true,
+      },
+    };
+
+    onPaste.call(context, event);
+
+    expect(pasteCalls).toEqual([
+      {
+        html: `<span style="font-family:'나눔고딕'">A</span>`,
+        hasInternalClipboard: false,
+      },
+    ]);
+  });
+
+  it('preserves internal clipboard for existing documents when no paste rewrite is needed', () => {
+    const event = clipboardEventWithHtml(`<span style="font-family:'나눔고딕'">A</span>`);
+    const context = {
+      wasm: {
+        isNewDocument: false,
+        hasInternalClipboard: () => true,
+        clipboardHasControl: () => true,
+      },
+    };
+
+    onPaste.call(context, event);
+
+    expect(pasteCalls).toEqual([
+      {
+        html: `<span style="font-family:'나눔고딕'">A</span>`,
+        hasInternalClipboard: true,
+      },
+    ]);
+  });
 });
 
 function clipboardEventWithHtml(html: string): ClipboardEvent {

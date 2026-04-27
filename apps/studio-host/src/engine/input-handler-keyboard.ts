@@ -4,10 +4,11 @@ import { sanitizeAuthoringHtml } from '@/core/font-authoring-policy';
 export * from '@upstream/engine/input-handler-keyboard';
 
 export function onPaste(this: unknown, event: ClipboardEvent): void {
+  const pasteContext = isNewDocumentContext(this) ? disableInternalClipboard(this) : this;
   const html = event.clipboardData?.getData('text/html') ?? '';
   const sanitizedHtml = sanitizeAuthoringHtml(html);
   if (!html || sanitizedHtml === html || !event.clipboardData) {
-    upstreamKeyboard.onPaste.call(this, event);
+    upstreamKeyboard.onPaste.call(pasteContext, event);
     return;
   }
 
@@ -29,8 +30,6 @@ export function onPaste(this: unknown, event: ClipboardEvent): void {
       return typeof value === 'function' ? value.bind(target) : value;
     },
   });
-  const pasteContext = isNewDocumentContext(this) ? disableInternalClipboard(this) : this;
-
   upstreamKeyboard.onPaste.call(pasteContext, eventProxy as ClipboardEvent);
 }
 
