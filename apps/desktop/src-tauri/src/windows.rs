@@ -12,10 +12,19 @@ const NEW_WINDOW_PREFERRED_HEIGHT: f64 = 760.0;
 const NEW_WINDOW_MAX_WORK_AREA_RATIO: f64 = 0.85;
 
 pub fn create_editor_window(app: &AppHandle) -> Result<String, String> {
-    let label = format!("main{}", Uuid::new_v4().simple());
+    let label = new_editor_window_label();
+    create_editor_window_with_label(app, &label)?;
+    Ok(label)
+}
+
+pub fn new_editor_window_label() -> String {
+    format!("main{}", Uuid::new_v4().simple())
+}
+
+pub fn create_editor_window_with_label(app: &AppHandle, label: &str) -> Result<(), String> {
     let (width, height) = new_window_size(app);
 
-    let builder = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("index.html".into()))
+    let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App("index.html".into()))
         .title("HOP")
         .inner_size(width, height)
         .min_inner_size(MIN_EDITOR_WINDOW_WIDTH, MIN_EDITOR_WINDOW_HEIGHT)
@@ -28,9 +37,10 @@ pub fn create_editor_window(app: &AppHandle) -> Result<String, String> {
         .map_err(|e| format!("새 창 생성 실패: {}", e))?;
     install_editor_window_minimum(&window);
     attach_document_drop_handler(app, &window);
+    attach_pending_open_cleanup(app, &window);
     let _ = window.set_focus();
 
-    Ok(label)
+    Ok(())
 }
 
 fn new_window_size(app: &AppHandle) -> (f64, f64) {
@@ -101,6 +111,18 @@ pub fn attach_document_drop_handler(app: &AppHandle, window: &WebviewWindow) {
             "hop-open-paths",
             serde_json::json!({ "paths": paths }),
         );
+    });
+}
+
+fn attach_pending_open_cleanup(app: &AppHandle, window: &WebviewWindow) {
+    let app = app.clone();
+    let label = window.label().to_string();
+    window.on_window_event(move |event| {
+        if matches!(event, WindowEvent::Destroyed) {
+            app.state::<crate::state::AppState>()
+                .pending_open_paths
+                .discard_for_window(&label);
+        }
     });
 }
 

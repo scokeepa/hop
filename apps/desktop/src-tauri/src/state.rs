@@ -1,3 +1,4 @@
+use crate::pending_open::PendingOpenPaths;
 use rhwp::DocumentCore;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -106,7 +107,7 @@ pub struct DocumentSessionManager {
 #[derive(Default)]
 pub struct AppState {
     pub sessions: Mutex<DocumentSessionManager>,
-    pub pending_open_paths: Mutex<Vec<String>>,
+    pub(crate) pending_open_paths: PendingOpenPaths,
     pub quit_requests: Mutex<crate::app_quit::AppQuitState>,
     pub updater: Mutex<crate::updates::UpdateManagerState>,
 }

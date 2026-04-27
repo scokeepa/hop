@@ -6,6 +6,7 @@ mod linux_runtime;
 #[cfg(target_os = "macos")]
 mod menu;
 mod pdf_export;
+mod pending_open;
 mod state;
 #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
 mod updates;
@@ -43,7 +44,18 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
             let paths = document_paths_from_args(&args, &cwd);
+            if paths.is_empty() {
+                return;
+            }
+            #[cfg(target_os = "macos")]
             queue_open_paths(app, paths);
+            #[cfg(not(target_os = "macos"))]
+            {
+                let app = app.clone();
+                tauri::async_runtime::spawn_blocking(move || {
+                    open_paths_in_new_windows(&app, paths);
+                });
+            }
         }))
         .setup(|app| {
             #[cfg(target_os = "macos")]
@@ -119,9 +131,9 @@ fn queue_open_paths(app: &AppHandle, paths: Vec<String>) {
         return;
     }
 
-    if let Ok(mut pending) = app.state::<AppState>().pending_open_paths.lock() {
-        pending.extend(paths.iter().cloned());
-    }
+    app.state::<AppState>()
+        .pending_open_paths
+        .queue_global(paths.iter().cloned());
 
     let payload = serde_json::json!({ "paths": paths });
     if let Some(label) = crate::windows::target_window_label(app) {
@@ -129,6 +141,30 @@ fn queue_open_paths(app: &AppHandle, paths: Vec<String>) {
     } else {
         let _ = app.emit("hop-open-paths", payload);
     }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn open_paths_in_new_windows(app: &AppHandle, paths: Vec<String>) {
+    for path in paths {
+        if let Err(error) = open_path_in_new_window(app, path) {
+            eprintln!("[open] 새 창 파일 열기 준비 실패: {}", error);
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn open_path_in_new_window(app: &AppHandle, path: String) -> Result<(), String> {
+    let label = crate::windows::new_editor_window_label();
+    app.state::<AppState>()
+        .pending_open_paths
+        .queue_for_window(&label, [path]);
+    if let Err(error) = crate::windows::create_editor_window_with_label(app, &label) {
+        app.state::<AppState>()
+            .pending_open_paths
+            .discard_for_window(&label);
+        return Err(error);
+    }
+    Ok(())
 }
 
 fn document_paths_from_args(args: &[String], cwd: &str) -> Vec<String> {

@@ -51,12 +51,11 @@ pub fn open_document_tracking(
 }
 
 #[tauri::command]
-pub fn take_pending_open_paths(state: State<'_, AppState>) -> Result<Vec<String>, String> {
-    let mut paths = state
-        .pending_open_paths
-        .lock()
-        .map_err(|_| "대기 중인 파일 열기 큐 잠금 실패".to_string())?;
-    Ok(paths.drain(..).collect())
+pub fn take_pending_open_paths(
+    window: WebviewWindow,
+    state: State<'_, AppState>,
+) -> Result<Vec<String>, String> {
+    state.pending_open_paths.take_for_window(window.label())
 }
 
 #[tauri::command]
