@@ -1,5 +1,6 @@
 import { VirtualScroll } from '@/view/virtual-scroll';
 import { resolveVirtualScrollPageLeft } from '../view/page-left';
+import { appendSvgLine, createSvgRoot } from './svg-dom';
 
 /** 핸들 방향 */
 export type HandleDirection = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'rotate';
@@ -120,10 +121,11 @@ export class TableObjectRenderer {
       // 연결선 (SVG)
       const svgEl = document.createElement('div');
       svgEl.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;';
-      svgEl.innerHTML =
-        `<svg style="position:absolute;overflow:visible;pointer-events:none;">` +
-        `<line x1="${topCx}" y1="${topCy}" x2="${rcx}" y2="${rcy}" stroke="#4CAF50" stroke-width="1"/>` +
-        `</svg>`;
+      const svg = createSvgRoot('', '');
+      svg.style.position = 'absolute';
+      svg.style.pointerEvents = 'none';
+      appendSvgLine(svg, topCx, topCy, rcx, rcy, { stroke: '#4CAF50', strokeWidth: 1 });
+      svgEl.appendChild(svg);
       this.layer.appendChild(svgEl);
       this.extraEls.push(svgEl);
 
@@ -271,7 +273,13 @@ export class TableObjectRenderer {
     if (!midPoint) {
       const svgEl = document.createElement('div');
       svgEl.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;';
-      svgEl.innerHTML = `<svg style="width:100%;height:100%;overflow:visible"><line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#000" stroke-width="1" stroke-dasharray="4,2"/></svg>`;
+      const svg = createSvgRoot('100%', '100%');
+      appendSvgLine(svg, sx, sy, ex, ey, {
+        stroke: '#000',
+        strokeWidth: 1,
+        strokeDasharray: '4,2',
+      });
+      svgEl.appendChild(svg);
       this.layer.appendChild(svgEl);
       this.extraEls.push(svgEl);
     }

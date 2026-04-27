@@ -161,22 +161,24 @@ function sanitizeSvg(root: Element): void {
       const value = attribute.value.trim().toLowerCase();
       if (name.startsWith('on') || value.includes('javascript:')) {
         element.removeAttribute(attribute.name);
-      } else if (['href', 'src', 'xlink:href'].includes(name) && !isSafeSvgReference(value)) {
+      } else if (['href', 'src', 'xlink:href'].includes(name) && !isSafePrintSvgReference(value)) {
         element.removeAttribute(attribute.name);
       }
     }
   }
 }
 
-function isSafeSvgReference(value: string): boolean {
-  return value === ''
-    || value.startsWith('#')
-    || value.startsWith('data:image/png;')
-    || value.startsWith('data:image/jpeg;')
-    || value.startsWith('data:image/jpg;')
-    || value.startsWith('data:image/gif;')
-    || value.startsWith('data:image/webp;')
-    || value.startsWith('data:image/bmp;');
+export function isSafePrintSvgReference(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  return normalized === ''
+    || normalized.startsWith('#')
+    || normalized.startsWith('data:image/png;')
+    || normalized.startsWith('data:image/jpeg;')
+    || normalized.startsWith('data:image/jpg;')
+    || normalized.startsWith('data:image/gif;')
+    || normalized.startsWith('data:image/webp;')
+    || normalized.startsWith('data:image/bmp;')
+    || normalized.startsWith('data:image/svg+xml;');
 }
 
 function removePrintDocument(): void {

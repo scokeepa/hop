@@ -154,6 +154,7 @@ type MockNode = {
   classList: { toggle: (name: string, value: boolean) => void };
   appendChild: (child: MockNode) => MockNode;
   removeChild: (child: MockNode) => void;
+  replaceChildren: (...children: MockNode[]) => void;
   remove: () => void;
   querySelector: (selector: string) => MockNode | null;
 };
@@ -176,6 +177,16 @@ function createMockNode(id?: string): MockNode {
     removeChild(child) {
       node.children = node.children.filter((candidate) => candidate !== child);
       child.parentElement = null;
+    },
+    replaceChildren(...children) {
+      for (const child of node.children) {
+        child.parentElement = null;
+      }
+      node.children = [];
+      node.innerHTML = '';
+      for (const child of children) {
+        node.appendChild(child);
+      }
     },
     remove() {
       node.parentElement?.removeChild(node);

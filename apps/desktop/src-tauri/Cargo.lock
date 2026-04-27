@@ -3671,7 +3671,7 @@ dependencies = [
 
 [[package]]
 name = "rhwp"
-version = "0.7.3"
+version = "0.7.6"
 dependencies = [
  "base64 0.22.1",
  "byteorder",
@@ -3681,6 +3681,7 @@ dependencies = [
  "embedded-io",
  "encoding_rs",
  "flate2",
+ "image",
  "js-sys",
  "paste",
  "pdf-writer",

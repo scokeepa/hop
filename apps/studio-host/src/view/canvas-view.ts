@@ -294,7 +294,7 @@ export class CanvasView {
     this.canvasPool.releaseAll();
     this.currentVisiblePages = [];
     this.pages = [];
-    this.scrollContent.innerHTML = '';
+    this.scrollContent.replaceChildren();
   }
 
   dispose(): void {

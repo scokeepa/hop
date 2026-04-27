@@ -26,6 +26,7 @@ import * as _keyboard from '@upstream/engine/input-handler-keyboard';
 import * as _text from '@upstream/engine/input-handler-text';
 import * as _picture from '@upstream/engine/input-handler-picture';
 import { resolvePageLeft, resolveVirtualScrollPageLeft } from '../view/page-left';
+import { appendSvgElement, appendSvgLine, createOverlayLabel, createSvgRoot } from './svg-dom';
 
 /** 클릭 커서 배치 + 키보드 입력을 처리한다 */
 export class InputHandler {
@@ -518,19 +519,29 @@ export class InputHandler {
       document.body.appendChild(this.polygonOverlay);
     }
     const pts = this.polygonPoints;
-    if (pts.length === 0) { this.polygonOverlay.innerHTML = ''; return; }
+    if (pts.length === 0) {
+      this.polygonOverlay.replaceChildren();
+      return;
+    }
 
-    let lines = '';
+    const svg = createSvgRoot();
     // 확정된 변
     for (let i = 0; i < pts.length - 1; i++) {
-      lines += `<line x1="${pts[i].x}" y1="${pts[i].y}" x2="${pts[i + 1].x}" y2="${pts[i + 1].y}" stroke="#333" stroke-width="2"/>`;
+      appendSvgLine(svg, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
     }
     // 마지막 점 → 마우스 위치 (프리뷰)
     const last = pts[pts.length - 1];
-    lines += `<line x1="${last.x}" y1="${last.y}" x2="${mx}" y2="${my}" stroke="#333" stroke-width="2" stroke-dasharray="6,3"/>`;
+    appendSvgLine(svg, last.x, last.y, mx, my, { strokeDasharray: '6,3' });
     // 꼭짓점 마커
     for (const p of pts) {
-      lines += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#fff" stroke="#333" stroke-width="1"/>`;
+      appendSvgElement(svg, 'circle', {
+        cx: p.x,
+        cy: p.y,
+        r: 3,
+        fill: '#fff',
+        stroke: '#333',
+        'stroke-width': 1,
+      });
     }
     // 크기 표시
     const allX = [...pts.map(p => p.x), mx];
@@ -540,9 +551,9 @@ export class InputHandler {
     const zoom = this.viewportManager.getZoom();
     const wMm = ((maxX - minX) / zoom * 25.4 / 96).toFixed(1);
     const hMm = ((maxY - minY) / zoom * 25.4 / 96).toFixed(1);
-    const sizeLabel = `<div style="position:fixed;left:${maxX + 4}px;top:${maxY + 4}px;background:rgba(0,0,0,0.75);color:#fff;font-size:11px;padding:2px 6px;border-radius:3px;white-space:nowrap;pointer-events:none">${wMm} × ${hMm} mm</div>`;
+    const sizeLabel = createOverlayLabel(maxX + 4, maxY + 4, `${wMm} × ${hMm} mm`);
 
-    this.polygonOverlay.innerHTML = `<svg style="width:100%;height:100%;overflow:visible">${lines}</svg>${sizeLabel}`;
+    this.polygonOverlay.replaceChildren(svg, sizeLabel);
   }
 
   /** 다각형 그리기: 완료 (더블클릭 또는 시작점 근접) */
@@ -659,10 +670,10 @@ export class InputHandler {
     // mm 크기 계산 (96dpi 기준: 1px = 25.4/96 mm)
     const wMm = (w / zoom * 25.4 / 96).toFixed(1);
     const hMm = (h / zoom * 25.4 / 96).toFixed(1);
-    const sizeLabel = `<div style="position:fixed;left:${left + w + 4}px;top:${top + h + 4}px;background:rgba(0,0,0,0.75);color:#fff;font-size:11px;padding:2px 6px;border-radius:3px;white-space:nowrap;pointer-events:none">${wMm} × ${hMm} mm</div>`;
+    const sizeLabel = createOverlayLabel(left + w + 4, top + h + 4, `${wMm} × ${hMm} mm`);
 
-    let shapeSvg = '';
-    let customLabel = '';
+    const svg = createSvgRoot();
+    let customLabel: HTMLDivElement | null = null;
     if (type === 'line') {
       let ex = x2, ey = y2;
       if (shiftKey) {
@@ -673,7 +684,7 @@ export class InputHandler {
         ex = x1 + dist * Math.cos(snapAngle);
         ey = y1 + dist * Math.sin(snapAngle);
       }
-      shapeSvg = `<line x1="${x1}" y1="${y1}" x2="${ex}" y2="${ey}" stroke="#333" stroke-width="2" stroke-dasharray="6,3"/>`;
+      appendSvgLine(svg, x1, y1, ex, ey, { strokeDasharray: '6,3' });
       if (this.textboxPlacementDrag && shiftKey) {
         this.textboxPlacementDrag.currentClientX = ex;
         this.textboxPlacementDrag.currentClientY = ey;
@@ -682,10 +693,19 @@ export class InputHandler {
       const lenPx = Math.hypot(ex - x1, ey - y1);
       const lenMm = (lenPx / zoom * 25.4 / 96).toFixed(1);
       const mx = (x1 + ex) / 2, my = (y1 + ey) / 2;
-      customLabel = `<div style="position:fixed;left:${mx + 8}px;top:${my + 8}px;background:rgba(0,0,0,0.75);color:#fff;font-size:11px;padding:2px 6px;border-radius:3px;white-space:nowrap;pointer-events:none">${lenMm} mm</div>`;
+      customLabel = createOverlayLabel(mx + 8, my + 8, `${lenMm} mm`);
     } else if (type === 'ellipse') {
       const cx = left + w / 2, cy = top + h / 2;
-      shapeSvg = `<ellipse cx="${cx}" cy="${cy}" rx="${w / 2}" ry="${h / 2}" fill="rgba(0,0,0,0.05)" stroke="#333" stroke-width="2" stroke-dasharray="6,3"/>`;
+      appendSvgElement(svg, 'ellipse', {
+        cx,
+        cy,
+        rx: w / 2,
+        ry: h / 2,
+        fill: 'rgba(0,0,0,0.05)',
+        stroke: '#333',
+        'stroke-width': 2,
+        'stroke-dasharray': '6,3',
+      });
     } else if (type === 'arc') {
       // 호: 사각형에 내접하는 타원의 1/4 호
       // 우상 사분면: 상단 중앙 → 우측 중앙
@@ -693,22 +713,51 @@ export class InputHandler {
       if (rx > 1 && ry > 1) {
         const cx = left + w / 2, cy = top + h / 2;
         // 시작: 상단 중앙 (cx, top), 끝: 우측 중앙 (left+w, cy)
-        shapeSvg = `<path d="M ${cx} ${top} A ${rx} ${ry} 0 0 1 ${left + w} ${cy}" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="6,3"/>`;
+        appendSvgElement(svg, 'path', {
+          d: `M ${cx} ${top} A ${rx} ${ry} 0 0 1 ${left + w} ${cy}`,
+          fill: 'none',
+          stroke: '#333',
+          'stroke-width': 2,
+          'stroke-dasharray': '6,3',
+        });
         // 보조선: 내접 사각형
-        shapeSvg += `<rect x="${left}" y="${top}" width="${w}" height="${h}" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3"/>`;
+        appendSvgElement(svg, 'rect', {
+          x: left,
+          y: top,
+          width: w,
+          height: h,
+          fill: 'none',
+          stroke: '#ccc',
+          'stroke-width': 1,
+          'stroke-dasharray': '3,3',
+        });
       }
     } else if (type === 'polygon') {
       // 다각형: 삼각형 프리뷰
       const tx = left + w / 2, ty = top;
-      shapeSvg = `<polygon points="${tx},${ty} ${left + w},${top + h} ${left},${top + h}" fill="rgba(0,0,0,0.05)" stroke="#333" stroke-width="2" stroke-dasharray="6,3"/>`;
+      appendSvgElement(svg, 'polygon', {
+        points: `${tx},${ty} ${left + w},${top + h} ${left},${top + h}`,
+        fill: 'rgba(0,0,0,0.05)',
+        stroke: '#333',
+        'stroke-width': 2,
+        'stroke-dasharray': '6,3',
+      });
     } else {
       // rectangle / textbox
-      shapeSvg = `<rect x="${left}" y="${top}" width="${w}" height="${h}" fill="rgba(0,0,0,0.05)" stroke="#333" stroke-width="2" stroke-dasharray="6,3"/>`;
+      appendSvgElement(svg, 'rect', {
+        x: left,
+        y: top,
+        width: w,
+        height: h,
+        fill: 'rgba(0,0,0,0.05)',
+        stroke: '#333',
+        'stroke-width': 2,
+        'stroke-dasharray': '6,3',
+      });
     }
 
-    const label = customLabel || (w > 5 || h > 5 ? sizeLabel : '');
-    this.textboxPlacementOverlay.innerHTML =
-      `<svg style="width:100%;height:100%;overflow:visible">${shapeSvg}</svg>${label}`;
+    const label = customLabel || (w > 5 || h > 5 ? sizeLabel : null);
+    this.textboxPlacementOverlay.replaceChildren(...(label ? [svg, label] : [svg]));
   }
 
   /** 도형 배치 오버레이 제거 */
