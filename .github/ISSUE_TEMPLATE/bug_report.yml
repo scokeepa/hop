@@ -2,6 +2,47 @@ name: Bug Report
 description: Report a bug in HOP
 labels: ["bug"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing a HOP bug, please test the same document and steps in the upstream rhwp demo:
+
+        https://edwardkim.github.io/rhwp/
+
+        If the same problem also happens in rhwp, please report it to rhwp instead:
+
+        https://github.com/edwardkim/rhwp/issues
+
+  - type: checkboxes
+    id: rhwp-check
+    attributes:
+      label: Upstream rhwp check
+      description: HOP issues should be filed after checking whether the same problem reproduces in upstream rhwp.
+      options:
+        - label: I tested the same document and steps in the upstream rhwp demo.
+          required: true
+    validations:
+      required: true
+
+  - type: dropdown
+    id: rhwp-result
+    attributes:
+      label: rhwp demo result
+      options:
+        - The problem does not happen in rhwp.
+        - The same problem happens in rhwp, and I opened or found an upstream rhwp issue.
+    validations:
+      required: true
+
+  - type: input
+    id: rhwp-issue
+    attributes:
+      label: rhwp issue link
+      description: If the same problem happens in rhwp, link the upstream rhwp issue here.
+      placeholder: "https://github.com/edwardkim/rhwp/issues/..."
+    validations:
+      required: false
+
   - type: dropdown
     id: os
     attributes:
