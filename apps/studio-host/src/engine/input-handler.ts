@@ -27,6 +27,12 @@ import * as _text from '@upstream/engine/input-handler-text';
 import * as _picture from '@upstream/engine/input-handler-picture';
 import { resolvePageLeft, resolveVirtualScrollPageLeft } from '../view/page-left';
 import { appendSvgElement, appendSvgLine, createOverlayLabel, createSvgRoot } from './svg-dom';
+import {
+  createSyntheticClipboardEvent,
+  createWritableClipboardData,
+  readClipboardDataForPaste,
+  writeClipboardData,
+} from './clipboard-data';
 
 /** 클릭 커서 배치 + 키보드 입력을 처리한다 */
 export class InputHandler {
@@ -2195,9 +2201,9 @@ export class InputHandler {
       }
       return;
     }
-    // 텍스트 선택 → textarea 포커스 후 execCommand
-    this.focusTextarea();
-    document.execCommand('copy');
+    void this.copyTextSelectionToSystemClipboard().catch((err) => {
+      console.warn('[InputHandler] 텍스트 복사 실패:', err);
+    });
   }
 
   /** 잘라내기 (커맨드 시스템용 — 컨텍스트 메뉴/도구 상자에서 호출) */
@@ -2236,9 +2242,52 @@ export class InputHandler {
       }
       return;
     }
-    // 텍스트 선택 → textarea 포커스 후 execCommand
+    void this.cutTextSelectionToSystemClipboard().catch((err) => {
+      console.warn('[InputHandler] 텍스트 잘라내기 실패:', err);
+    });
+  }
+
+  /** 붙여넣기 (커맨드 시스템용 — 메뉴/도구 상자에서 호출) */
+  performPaste(): void {
+    void this.pasteFromSystemClipboard().catch((err) => {
+      console.warn('[InputHandler] 붙여넣기 실패:', err);
+    });
+  }
+
+  private async copyTextSelectionToSystemClipboard(): Promise<boolean> {
+    if (!this.cursor.hasSelection()) return false;
+
+    const clipboardData = createWritableClipboardData();
+    _keyboard.onCopy.call(this, createSyntheticClipboardEvent(clipboardData));
+    if (await writeClipboardData(clipboardData)) return true;
+
+    this.focusTextarea();
+    return document.execCommand('copy');
+  }
+
+  private async cutTextSelectionToSystemClipboard(): Promise<void> {
+    if (!this.cursor.hasSelection()) return;
+
+    const clipboardData = createWritableClipboardData();
+    _keyboard.onCopy.call(this, createSyntheticClipboardEvent(clipboardData));
+    if (await writeClipboardData(clipboardData)) {
+      this.deleteSelection();
+      return;
+    }
+
     this.focusTextarea();
     document.execCommand('cut');
+  }
+
+  private async pasteFromSystemClipboard(): Promise<void> {
+    const clipboardData = await readClipboardDataForPaste();
+    if (clipboardData) {
+      _keyboard.onPaste.call(this, createSyntheticClipboardEvent(clipboardData));
+      return;
+    }
+
+    this.focusTextarea();
+    document.execCommand('paste');
   }
 
   /** 전체 선택 (커맨드 시스템용) */

@@ -4,6 +4,11 @@
 import type { ContextMenuItem } from '@/ui/context-menu';
 import * as _connector from '@upstream/engine/input-handler-connector';
 import { resolveVirtualScrollPageLeft } from '../view/page-left';
+import {
+  hitTestNearPagePoint,
+  selectParagraphAtPointer,
+  selectWordAtPointer,
+} from './input-handler-text-selection';
 
 export function tryHandleCellSelectionClick(this: any, e: MouseEvent): boolean {
   if (!this.cursor.isInCellSelectionMode() || e.button === 2) {
@@ -502,6 +507,20 @@ export function onClick(this: any, e: MouseEvent): void {
   const pageX = (contentX - pageLeft) / zoom;
   const pageY = (contentY - pageOffset) / zoom;
 
+  // 트리플 클릭은 문단 선택으로 처리한다. 일반 click hit-test보다 먼저 잡아
+  // 드래그 시작이나 표 외곽 선택 상태와 섞이지 않게 한다.
+  if (e.button === 0 && e.detail >= 3 && selectParagraphAtPointer.call(this, e)) {
+    e.preventDefault();
+    return;
+  }
+
+  // WebView에서는 dblclick 전에 두 번째 mousedown이 일반 caret 배치로
+  // 처리될 수 있으므로 mousedown detail에서도 단어 선택을 확정한다.
+  if (e.button === 0 && e.detail === 2 && selectWordAtPointer.call(this, e)) {
+    e.preventDefault();
+    return;
+  }
+
   // 표 경계선 클릭 → 리사이즈 드래그 시작
   if (e.button === 0 && this.tableResizeRenderer && this.cachedCellBboxes && this.cachedTableRef) {
     const pageBboxes = this.cachedCellBboxes.filter((b: any) => b.pageIndex === pageIdx);
@@ -591,10 +610,8 @@ export function onClick(this: any, e: MouseEvent): void {
   }
 
   try {
-    const hit = this.wasm.hitTest(pageIdx, pageX, pageY);
-
-    // 머리말/꼬리말 마커 para_index(usize::MAX - hf_idx) 감지 → 무시
-    if (hit.paragraphIndex >= 0xFFFFFF00) {
+    const hit = hitTestNearPagePoint(this.wasm, pageIdx, pageX, pageY, zoom);
+    if (!hit) {
       this.textarea.focus();
       return;
     }
@@ -840,6 +857,10 @@ export function onDblClick(this: any, e: MouseEvent): void {
       this.textarea.focus();
       return;
     }
+  }
+
+  if (selectWordAtPointer.call(this, e)) {
+    e.preventDefault();
   }
 }
 

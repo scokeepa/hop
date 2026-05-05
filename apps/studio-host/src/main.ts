@@ -524,13 +524,10 @@ async function initializeDocument(docInfo: DocumentInfo, displayName: string): P
 
     try {
       const report = wasm.getValidationWarnings();
-      console.log(`[validation] ${report.count} warnings`, report.summary);
       if (report.count > 0) {
         const choice = await showValidationModalIfNeeded(report);
-        console.log(`[validation] user choice: ${choice}`);
         if (choice === 'auto-fix') {
           const reflowedCount = wasm.reflowLinesegs();
-          console.log(`[validation] reflowed ${reflowedCount} paragraphs`);
           canvasView?.loadDocument();
           msg.textContent = `${displayName} (비표준 lineseg ${reflowedCount}건 자동 보정됨)`;
         }
