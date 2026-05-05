@@ -32,7 +32,8 @@ HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 macOS, Window
 * [Linux x64 (AppImage, portable)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage)
 * [Arch Linux AUR (`hop-openhwp-bin`)](https://aur.archlinux.org/packages/hop-openhwp-bin)
 
-macOS 빌드는 signed/notarized `.dmg`입니다. Homebrew를 통해서 설치할 수도 있습니다.
+macOS 빌드는 signed/notarized `.dmg`입니다. Homebrew를 통해서 설치할 수도 있습니다. Homebrew 패키지는 [daeho-ro](https://github.com/daeho-ro)님이 올려주셨습니다.
+
 ```sh
 brew install hop
 ```
