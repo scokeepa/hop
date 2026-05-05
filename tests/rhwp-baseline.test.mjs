@@ -21,7 +21,7 @@ test('HOP keeps the rhwp renderer baseline aligned across submodule, WASM packag
   const cargoLock = await readFile(join(repoRoot, 'apps/desktop/src-tauri/Cargo.lock'), 'utf8');
   assert.match(
     cargoLock,
-    new RegExp(`name = "rhwp"\\nversion = "${escapeRegExp(expectedRhwpVersion)}"`),
+    new RegExp(`name = "rhwp"\\r?\\nversion = "${escapeRegExp(expectedRhwpVersion)}"`),
   );
 
   const upstreamDoc = await readFile(join(repoRoot, 'docs/architecture/UPSTREAM.md'), 'utf8');
