@@ -1,4 +1,4 @@
-use tauri::menu::{Menu, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{Menu, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
 use tauri::{App, Emitter};
 
 pub fn install(app: &mut App) -> tauri::Result<()> {
@@ -40,9 +40,7 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let copy = MenuItemBuilder::with_id("edit:copy", "Copy")
         .accelerator("CmdOrCtrl+C")
         .build(app)?;
-    let paste = MenuItemBuilder::with_id("edit:paste", "Paste")
-        .accelerator("CmdOrCtrl+V")
-        .build(app)?;
+    let paste = PredefinedMenuItem::paste(app, Some("Paste"))?;
     let find = MenuItemBuilder::with_id("edit:find", "Find")
         .accelerator("CmdOrCtrl+F")
         .build(app)?;
